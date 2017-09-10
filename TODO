@@ -1,0 +1,3 @@
+* Clone emsdk/emscripten, add as submodule and do needed modifications.
+* Try to compile libressl completeley, or catch failure.
+* Add final tor compilation.
