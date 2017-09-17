@@ -2,5 +2,5 @@
 set -e
 
 (cd lib/libressl && ./autogen.sh &&\
- mkdir -p build && cd build && emcmake cmake .. && emmake make\
+ AR=llvm-ar CC=emcc ./configure --disable-asm --disable-shared && make\
 )
