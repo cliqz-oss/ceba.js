@@ -1,12 +1,15 @@
 [submodule "lib/tor"]
-	path = lib/tor
+	path = external/tor
 	url = git@github.com:nizkp/tor.git
 [submodule "lib/libressl"]
-	path = lib/libressl
+	path = external/libressl
 	url = git@github.com:nizkp/portable.git
 [submodule "lib/libevent"]
-	path = lib/libevent
+	path = external/libevent
 	url = git@github.com:libevent/libevent.git
 [submodule "lib/zlib"]
-	path = lib/zlib
+	path = external/zlib
 	url = git@github.com:madler/zlib.git
+[submodule "lib/emsdk"]
+	path = external/emsdk
+	url = git@github.com:nizkp/emsdk.git
