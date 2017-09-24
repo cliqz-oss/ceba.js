@@ -38,7 +38,7 @@ mergeInto(LibraryManager.library, {
       return FS.createNode(null, '/', {{{ cDefine('S_IFDIR') }}} | 511 /* 0777 */, 0);
     },
     createSocket: function(family, type, protocol) {
-      var streaming = type == {{{ cDefine('SOCK_STREAM') }}};
+      var streaming = type&{{{ cDefine('SOCK_STREAM') }}};
       if (protocol) {
         assert(streaming == (protocol == {{{ cDefine('IPPROTO_TCP') }}})); // if SOCK_STREAM, must be tcp
       }
@@ -353,14 +353,14 @@ mergeInto(LibraryManager.library, {
       // actual sock ops
       //
       poll: function(sock) {
-        if (sock.type === {{{ cDefine('SOCK_STREAM') }}} && sock.server) {
+        if (sock.type&{{{ cDefine('SOCK_STREAM') }}} && sock.server) {
           // listen sockets should only say they're available for reading
           // if there are pending clients.
           return sock.pending.length ? ({{{ cDefine('POLLRDNORM') }}} | {{{ cDefine('POLLIN') }}}) : 0;
         }
 
         var mask = 0;
-        var dest = sock.type === {{{ cDefine('SOCK_STREAM') }}} ?  // we only care about the socket state for connection-based sockets
+        var dest = sock.type&{{{ cDefine('SOCK_STREAM') }}} ?  // we only care about the socket state for connection-based sockets
           SOCKFS.websocket_sock_ops.getPeer(sock, sock.daddr, sock.dport) :
           null;
 
@@ -495,7 +495,7 @@ mergeInto(LibraryManager.library, {
 #if SOCKET_DEBUG
           console.log('received connection from: ' + ws._socket.remoteAddress + ':' + ws._socket.remotePort);
 #endif
-          if (sock.type === {{{ cDefine('SOCK_STREAM') }}}) {
+          if (sock.type&{{{ cDefine('SOCK_STREAM') }}}) {
             var newsock = SOCKFS.createSocket(sock.family, sock.type, sock.protocol);
 
             // create a peer on the new socket
@@ -576,7 +576,7 @@ mergeInto(LibraryManager.library, {
         var dest = SOCKFS.websocket_sock_ops.getPeer(sock, addr, port);
 
         // early out if not connected with a connection-based socket
-        if (sock.type === {{{ cDefine('SOCK_STREAM') }}}) {
+        if (sock.type&{{{ cDefine('SOCK_STREAM') }}}) {
           if (!dest || dest.socket.readyState === dest.socket.CLOSING || dest.socket.readyState === dest.socket.CLOSED) {
             throw new FS.ErrnoError(ERRNO_CODES.ENOTCONN);
           } else if (dest.socket.readyState === dest.socket.CONNECTING) {
@@ -624,14 +624,14 @@ mergeInto(LibraryManager.library, {
       },
       recvmsg: function(sock, length) {
         // http://pubs.opengroup.org/onlinepubs/7908799/xns/recvmsg.html
-        if (sock.type === {{{ cDefine('SOCK_STREAM') }}} && sock.server) {
+        if (sock.type&{{{ cDefine('SOCK_STREAM') }}} && sock.server) {
           // tcp servers should not be recv()'ing on the listen socket
           throw new FS.ErrnoError(ERRNO_CODES.ENOTCONN);
         }
 
         var queued = sock.recv_queue.shift();
         if (!queued) {
-          if (sock.type === {{{ cDefine('SOCK_STREAM') }}}) {
+          if (sock.type&{{{ cDefine('SOCK_STREAM') }}}) {
             var dest = SOCKFS.websocket_sock_ops.getPeer(sock, sock.daddr, sock.dport);
 
             if (!dest) {
@@ -668,7 +668,7 @@ mergeInto(LibraryManager.library, {
 #endif
 
         // push back any unread data for TCP connections
-        if (sock.type === {{{ cDefine('SOCK_STREAM') }}} && bytesRead < queuedLength) {
+        if (sock.type&{{{ cDefine('SOCK_STREAM') }}} && bytesRead < queuedLength) {
           var bytesRemaining = queuedLength - bytesRead;
 #if SOCKET_DEBUG
           Module.print('websocket read: put back ' + bytesRemaining + ' bytes');
