@@ -2,6 +2,7 @@
 set -e
 
 ./build_libressl.sh
+# TODO: look USE_ZLIB=1?
 ./build_zlib.sh
 ./build_libevent.sh
 
@@ -15,4 +16,4 @@ emconfigure ./configure --with-libevent-dir=../libevent/ --with-ssl-dir=../libre
 
 cp ./external/tor/src/or/tor ./build/tor.bc
 
-emcc --js-library library_sockfs.js -O3 -s WASM=1 ./build/tor.bc -o ./build/tor.html
+emcc --js-library library_sockfs.js --js-library library_syscall.js --post-js post.wasm.js --pre-js pre.wasm.js -O3 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 ./build/tor.bc -o ./build/tor.js

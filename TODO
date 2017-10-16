@@ -1,3 +1,4 @@
-* Clone emsdk/emscripten, add as submodule and do needed modifications.
-* Compile with docker.
-* Add final tor compilation.
+- Allow using real TCP sockets and also websockify bridge.
+- Check mmap and in general persisted files, we should aim for same persistence as in tor.
+- Check for memory leaks inside worker.
+- Improve scheduling, probably need to call loop manually, perhaps based on number of sockets? Would it work to just disable execution and resume later?

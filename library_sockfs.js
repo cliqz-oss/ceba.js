@@ -5,7 +5,7 @@ mergeInto(LibraryManager.library, {
     mount: function(mount) {
       // If Module['websocket'] has already been defined (e.g. for configuring
       // the subprotocol/url) use that, if not initialise it to a new object.
-      Module['websocket'] = (Module['websocket'] && 
+      Module['websocket'] = (Module['websocket'] &&
                              ('object' === typeof Module['websocket'])) ? Module['websocket'] : {};
 
       // Add the Event registration mechanism to the exported websocket configuration
@@ -272,6 +272,7 @@ mergeInto(LibraryManager.library, {
               queued = peer.dgram_send_queue.shift();
             }
           } catch (e) {
+            console.error('joder...', e);
             // not much we can do here in the way of proper error handling as we've already
             // lied and said this data was sent. shut it down.
             peer.socket.close();
@@ -312,27 +313,27 @@ mergeInto(LibraryManager.library, {
           Module['websocket'].emit('message', sock.stream.fd);
         };
 
-        if (ENVIRONMENT_IS_NODE) {
-          peer.socket.on('open', handleOpen);
-          peer.socket.on('message', function(data, flags) {
-            if (!flags.binary) {
-              return;
-            }
-            handleMessage((new Uint8Array(data)).buffer);  // copy from node Buffer -> ArrayBuffer
-          });
-          peer.socket.on('close', function() {
-            Module['websocket'].emit('close', sock.stream.fd);
-          });
-          peer.socket.on('error', function(error) {
-            // Although the ws library may pass errors that may be more descriptive than
-            // ECONNREFUSED they are not necessarily the expected error code e.g. 
-            // ENOTFOUND on getaddrinfo seems to be node.js specific, so using ECONNREFUSED
-            // is still probably the most useful thing to do.
-            sock.error = ERRNO_CODES.ECONNREFUSED; // Used in getsockopt for SOL_SOCKET/SO_ERROR test.
-            Module['websocket'].emit('error', [sock.stream.fd, sock.error, 'ECONNREFUSED: Connection refused']);
-            // don't throw
-          });
-        } else {
+        // if (ENVIRONMENT_IS_NODE) {
+        //   peer.socket.on('open', handleOpen);
+        //   peer.socket.on('message', function(data, flags) {
+        //     if (!flags.binary) {
+        //       return;
+        //     }
+        //     handleMessage((new Uint8Array(data)).buffer);  // copy from node Buffer -> ArrayBuffer
+        //   });
+        //   peer.socket.on('close', function() {
+        //     Module['websocket'].emit('close', sock.stream.fd);
+        //   });
+        //   peer.socket.on('error', function(error) {
+        //     // Although the ws library may pass errors that may be more descriptive than
+        //     // ECONNREFUSED they are not necessarily the expected error code e.g.
+        //     // ENOTFOUND on getaddrinfo seems to be node.js specific, so using ECONNREFUSED
+        //     // is still probably the most useful thing to do.
+        //     sock.error = ERRNO_CODES.ECONNREFUSED; // Used in getsockopt for SOL_SOCKET/SO_ERROR test.
+        //     Module['websocket'].emit('error', [sock.stream.fd, sock.error, 'ECONNREFUSED: Connection refused']);
+        //     // don't throw
+        //   });
+        // } else {
           peer.socket.onopen = handleOpen;
           peer.socket.onclose = function() {
             Module['websocket'].emit('close', sock.stream.fd);
@@ -346,7 +347,7 @@ mergeInto(LibraryManager.library, {
             sock.error = ERRNO_CODES.ECONNREFUSED; // Used in getsockopt for SOL_SOCKET/SO_ERROR test.
             Module['websocket'].emit('error', [sock.stream.fd, sock.error, 'ECONNREFUSED: Connection refused']);
           };
-        }
+        // }
       },
 
       //
@@ -473,13 +474,13 @@ mergeInto(LibraryManager.library, {
         throw new FS.ErrnoError(ERRNO_CODES.EINPROGRESS);
       },
       listen: function(sock, backlog) {
-        if (!ENVIRONMENT_IS_NODE) {
-          throw new FS.ErrnoError(ERRNO_CODES.EOPNOTSUPP);
-        }
+        // if (!ENVIRONMENT_IS_NODE) {
+        //   throw new FS.ErrnoError(ERRNO_CODES.EOPNOTSUPP);
+        // }
         if (sock.server) {
            throw new FS.ErrnoError(ERRNO_CODES.EINVAL);  // already listening
         }
-        var WebSocketServer = require('ws').Server;
+        var WebSocketServer = Module['websocketserver'];
         var host = sock.saddr;
 #if SOCKET_DEBUG
         console.log('listen: ' + host + ':' + sock.sport);
@@ -520,7 +521,7 @@ mergeInto(LibraryManager.library, {
         });
         sock.server.on('error', function(error) {
           // Although the ws library may pass errors that may be more descriptive than
-          // ECONNREFUSED they are not necessarily the expected error code e.g. 
+          // ECONNREFUSED they are not necessarily the expected error code e.g.
           // ENOTFOUND on getaddrinfo seems to be node.js specific, so using EHOSTUNREACH
           // is still probably the most useful thing to do. This error shouldn't
           // occur in a well written app as errors should get trapped in the compiled
