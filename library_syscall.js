@@ -522,6 +522,12 @@ var SyscallsLibrary = {
         HEAPU8.set(msg.buffer, buf);
         return msg.buffer.byteLength;
       }
+      case 13: {
+        // FIXME: implement
+        var sock = SYSCALLS.getSocketFromFD(), how = SYSCALLS.get();
+        // console.log('FIXME: implement socketcall 13!', sock, how);
+        return 0;
+      }
       case 14: { // setsockopt
         return 0;
         // return -ERRNO_CODES.ENOPROTOOPT; // The option is unknown at the level indicated.
@@ -706,6 +712,9 @@ var SyscallsLibrary = {
     // exceptfds not supported
     // timeout is always 0 - fully async
     var nfds = SYSCALLS.get(), readfds = SYSCALLS.get(), writefds = SYSCALLS.get(), exceptfds = SYSCALLS.get(), timeout = SYSCALLS.get();
+
+    // FIXME: patch!!!!
+    exceptfds = 0;
 
     assert(nfds <= 64, 'nfds must be less than or equal to 64');  // fd sets have 64 bits // TODO: this could be 1024 based on current musl headers
     assert(!exceptfds, 'exceptfds not supported');

@@ -1,4 +1,14 @@
-- Allow using real TCP sockets and also websockify bridge.
 - Check mmap and in general persisted files, we should aim for same persistence as in tor.
-- Check for memory leaks inside worker.
+- Check for memory leaks inside worker (and reasons why we need to grow memory sometimes... can we shrink?).
 - Improve scheduling, probably need to call loop manually, perhaps based on number of sockets? Would it work to just disable execution and resume later?
+- Complete fetchTor implementation.
+- Recover from network switches/problems (vpn change, network on/off).
+- Allow getting tor bootstrap progress.
+- Implement ssl (https).
+- Double check all the sockets "glue" in pre.js.
+- Check whether timeouts are normal, or due to some bug...
+- Try to reduce wasm size (at some point, we achieved 1.6MB, was it because it was a previous release tor version?). Should we compress assets?
+- Try to use original repos for git submodules (external), and just apply patches before compiling.
+- Sync FS to indexedDB from time to time, to improve bootstrap speed.
+- Review js libraries, we should make sure that we don't compile with different emscripten version. Is there a better approach?
+- Need to put some load/let it run for some time, and check for errors...
