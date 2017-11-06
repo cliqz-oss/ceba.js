@@ -6,10 +6,13 @@ set -e
 # TODO: SINGLE_FILE = 1
 
 ### libressl
-(cd external/libressl && ./autogen.sh && CPPFLAGS="-Oz" emconfigure ./configure --disable-asm --disable-shared && emmake make)
+(cd external/libressl && \
+ git apply ../../patches/libressl/portable/* && \
+ ./autogen.sh && \
+ CPPFLAGS="-O2" emconfigure ./configure --disable-asm --disable-shared && emmake make)
 
 ### zlib
-(cd external/zlib && AR=llvm-ar CFLAGS="-Oz" CC=emcc ./configure --static && make)
+(cd external/zlib && AR=llvm-ar CFLAGS="-O2" CC=emcc ./configure --static && make)
 
 ### libevent
 
@@ -17,7 +20,7 @@ set -e
 # CPPFLAGS="-I$HOME/torjs/external/zlib/include -I$HOME/torjs/external/zlib -I$HOME/torjs/external/libressl -I$HOME/torjs/external/libressl/include" LDFLAGS="-L$HOME/torjs/external/zlib -L$HOME/torjs/external/libressl" emconfigure ./configure --disable-thread-support --disable-shared
 
 (cd external/libevent && ./autogen.sh && \
-CPPFLAGS="-Oz" emconfigure ./configure --disable-thread-support --disable-shared --disable-openssl --disable-samples --disable-libevent-regress &&\
+CPPFLAGS="-O2" emconfigure ./configure --disable-thread-support --disable-shared --disable-openssl --disable-samples --disable-libevent-regress &&\
 sed -i.bak -e 's/#define HAVE_ARC4RANDOM 1/\/\/ #define HAVE_ARC4RANDOM 0/' ./config.h \
 && emmake make)
 

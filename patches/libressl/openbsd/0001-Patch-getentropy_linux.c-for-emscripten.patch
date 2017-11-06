@@ -1,0 +1,259 @@
+From c147e71a84f4d1ec7cb27e63f380784d6c7bb08d Mon Sep 17 00:00:00 2001
+From: Alex Catarineu <a.catarineu@gmail.com>
+Date: Sun, 17 Sep 2017 19:01:05 +0200
+Subject: [PATCH 1/2] Patch getentropy_linux.c for emscripten
+
+---
+ src/lib/libcrypto/arc4random/getentropy_linux.c | 184 ++++++++++++------------
+ 1 file changed, 92 insertions(+), 92 deletions(-)
+
+diff --git a/src/lib/libcrypto/arc4random/getentropy_linux.c b/src/lib/libcrypto/arc4random/getentropy_linux.c
+index a845239eb..d72c65a0b 100644
+--- a/src/lib/libcrypto/arc4random/getentropy_linux.c
++++ b/src/lib/libcrypto/arc4random/getentropy_linux.c
+@@ -28,7 +28,7 @@
+ #include <sys/resource.h>
+ #include <sys/syscall.h>
+ #ifdef SYS__sysctl
+-#include <linux/sysctl.h>
++#include <sys/sysctl.h>
+ #endif
+ #include <sys/statvfs.h>
+ #include <sys/socket.h>
+@@ -49,8 +49,8 @@
+ #include <time.h>
+ #include <openssl/sha.h>
+ 
+-#include <linux/types.h>
+-#include <linux/random.h>
++#include <sys/types.h>
++//~ #include <sys/random.h>
+ #ifdef HAVE_GETAUXVAL
+ #include <sys/auxv.h>
+ #endif
+@@ -74,13 +74,13 @@
+ int	getentropy(void *buf, size_t len);
+ 
+ static int gotdata(char *buf, size_t len);
+-#ifdef SYS_getrandom
+-static int getentropy_getrandom(void *buf, size_t len);
+-#endif
++//~ #ifdef SYS_getrandom
++//~ static int getentropy_getrandom(void *buf, size_t len);
++//~ #endif
+ static int getentropy_urandom(void *buf, size_t len);
+-#ifdef SYS__sysctl
+-static int getentropy_sysctl(void *buf, size_t len);
+-#endif
++//~ #ifdef SYS__sysctl
++//~ static int getentropy_sysctl(void *buf, size_t len);
++//~ #endif
+ static int getentropy_fallback(void *buf, size_t len);
+ static int getentropy_phdr(struct dl_phdr_info *info, size_t size, void *data);
+ 
+@@ -94,19 +94,19 @@ getentropy(void *buf, size_t len)
+ 		return (-1);
+ 	}
+ 
+-#ifdef SYS_getrandom
+-	/*
+-	 * Try descriptor-less getrandom(), in non-blocking mode.
+-	 *
+-	 * The design of Linux getrandom is broken.  It has an
+-	 * uninitialized phase coupled with blocking behaviour, which
+-	 * is unacceptable from within a library at boot time without
+-	 * possible recovery. See http://bugs.python.org/issue26839#msg267745
+-	 */
+-	ret = getentropy_getrandom(buf, len);
+-	if (ret != -1)
+-		return (ret);
+-#endif
++//~ #ifdef SYS_getrandom
++	//~ /*
++	 //~ * Try descriptor-less getrandom(), in non-blocking mode.
++	 //~ *
++	 //~ * The design of Linux getrandom is broken.  It has an
++	 //~ * uninitialized phase coupled with blocking behaviour, which
++	 //~ * is unacceptable from within a library at boot time without
++	 //~ * possible recovery. See http://bugs.python.org/issue26839#msg267745
++	 //~ */
++	//~ ret = getentropy_getrandom(buf, len);
++	//~ if (ret != -1)
++		//~ return (ret);
++//~ #endif
+ 
+ 	/*
+ 	 * Try to get entropy with /dev/urandom
+@@ -118,29 +118,29 @@ getentropy(void *buf, size_t len)
+ 	if (ret != -1)
+ 		return (ret);
+ 
+-#ifdef SYS__sysctl
+-	/*
+-	 * Try to use sysctl CTL_KERN, KERN_RANDOM, RANDOM_UUID.
+-	 * sysctl is a failsafe API, so it guarantees a result.  This
+-	 * should work inside a chroot, or when file descriptors are
+-	 * exhausted.
+-	 *
+-	 * However this can fail if the Linux kernel removes support
+-	 * for sysctl.  Starting in 2007, there have been efforts to
+-	 * deprecate the sysctl API/ABI, and push callers towards use
+-	 * of the chroot-unavailable fd-using /proc mechanism --
+-	 * essentially the same problems as /dev/urandom.
+-	 *
+-	 * Numerous setbacks have been encountered in their deprecation
+-	 * schedule, so as of June 2014 the kernel ABI still exists on
+-	 * most Linux architectures. The sysctl() stub in libc is missing
+-	 * on some systems.  There are also reports that some kernels
+-	 * spew messages to the console.
+-	 */
+-	ret = getentropy_sysctl(buf, len);
+-	if (ret != -1)
+-		return (ret);
+-#endif /* SYS__sysctl */
++//~ #ifdef SYS__sysctl
++	//~ /*
++	 //~ * Try to use sysctl CTL_KERN, KERN_RANDOM, RANDOM_UUID.
++	 //~ * sysctl is a failsafe API, so it guarantees a result.  This
++	 //~ * should work inside a chroot, or when file descriptors are
++	 //~ * exhausted.
++	 //~ *
++	 //~ * However this can fail if the Linux kernel removes support
++	 //~ * for sysctl.  Starting in 2007, there have been efforts to
++	 //~ * deprecate the sysctl API/ABI, and push callers towards use
++	 //~ * of the chroot-unavailable fd-using /proc mechanism --
++	 //~ * essentially the same problems as /dev/urandom.
++	 //~ *
++	 //~ * Numerous setbacks have been encountered in their deprecation
++	 //~ * schedule, so as of June 2014 the kernel ABI still exists on
++	 //~ * most Linux architectures. The sysctl() stub in libc is missing
++	 //~ * on some systems.  There are also reports that some kernels
++	 //~ * spew messages to the console.
++	 //~ */
++	//~ ret = getentropy_sysctl(buf, len);
++	//~ if (ret != -1)
++		//~ return (ret);
++//~ #endif /* SYS__sysctl */
+ 
+ 	/*
+ 	 * Entropy collection via /dev/urandom and sysctl have failed.
+@@ -165,16 +165,16 @@ getentropy(void *buf, size_t len)
+ 	 * sysctl ABI, or consider providing a new failsafe API which
+ 	 * works in a chroot or when file descriptors are exhausted.
+ 	 */
+-#undef FAIL_INSTEAD_OF_TRYING_FALLBACK
+-#ifdef FAIL_INSTEAD_OF_TRYING_FALLBACK
++//~ #undef FAIL_INSTEAD_OF_TRYING_FALLBACK
++//~ #ifdef FAIL_INSTEAD_OF_TRYING_FALLBACK
+ 	raise(SIGKILL);
+-#endif
+-	ret = getentropy_fallback(buf, len);
+-	if (ret != -1)
+-		return (ret);
++//~ #endif
++	//~ ret = getentropy_fallback(buf, len);
++	//~ if (ret != -1)
++		//~ return (ret);
+ 
+-	errno = EIO;
+-	return (ret);
++	//~ errno = EIO;
++	//~ return (ret);
+ }
+ 
+ /*
+@@ -240,14 +240,14 @@ start:
+ #endif
+ 
+ 	/* Lightly verify that the device node looks sane */
+-	if (fstat(fd, &st) == -1 || !S_ISCHR(st.st_mode)) {
+-		close(fd);
+-		goto nodevrandom;
+-	}
+-	if (ioctl(fd, RNDGETENTCNT, &cnt) == -1) {
+-		close(fd);
+-		goto nodevrandom;
+-	}
++	//~ if (fstat(fd, &st) == -1 || !S_ISCHR(st.st_mode)) {
++		//~ close(fd);
++		//~ goto nodevrandom;
++	//~ }
++	//~ if (ioctl(fd, RNDGETENTCNT, &cnt) == -1) {
++		//~ close(fd);
++		//~ goto nodevrandom;
++	//~ }
+ 	for (i = 0; i < len; ) {
+ 		size_t wanted = len - i;
+ 		ssize_t ret = read(fd, (char *)buf + i, wanted);
+@@ -270,37 +270,37 @@ nodevrandom:
+ 	return (-1);
+ }
+ 
+-#ifdef SYS__sysctl
+-static int
+-getentropy_sysctl(void *buf, size_t len)
+-{
+-	static int mib[] = { CTL_KERN, KERN_RANDOM, RANDOM_UUID };
+-	size_t i;
+-	int save_errno = errno;
+-
+-	for (i = 0; i < len; ) {
+-		size_t chunk = min(len - i, 16);
+-
+-		/* SYS__sysctl because some systems already removed sysctl() */
+-		struct __sysctl_args args = {
+-			.name = mib,
+-			.nlen = 3,
+-			.oldval = (char *)buf + i,
+-			.oldlenp = &chunk,
+-		};
+-		if (syscall(SYS__sysctl, &args) != 0)
+-			goto sysctlfailed;
+-		i += chunk;
+-	}
+-	if (gotdata(buf, len) == 0) {
+-		errno = save_errno;
+-		return (0);			/* satisfied */
+-	}
+-sysctlfailed:
+-	errno = EIO;
+-	return (-1);
+-}
+-#endif /* SYS__sysctl */
++//~ #ifdef SYS__sysctl
++//~ static int
++//~ getentropy_sysctl(void *buf, size_t len)
++//~ {
++	//~ static int mib[] = { CTL_KERN, KERN_RANDOM, RANDOM_UUID };
++	//~ size_t i;
++	//~ int save_errno = errno;
++
++	//~ for (i = 0; i < len; ) {
++		//~ size_t chunk = min(len - i, 16);
++
++		//~ /* SYS__sysctl because some systems already removed sysctl() */
++		//~ struct __sysctl_args args = {
++			//~ .name = mib,
++			//~ .nlen = 3,
++			//~ .oldval = (char *)buf + i,
++			//~ .oldlenp = &chunk,
++		//~ };
++		//~ if (syscall(SYS__sysctl, &args) != 0)
++			//~ goto sysctlfailed;
++		//~ i += chunk;
++	//~ }
++	//~ if (gotdata(buf, len) == 0) {
++		//~ errno = save_errno;
++		//~ return (0);			/* satisfied */
++	//~ }
++//~ sysctlfailed:
++	//~ errno = EIO;
++	//~ return (-1);
++//~ }
++//~ #endif /* SYS__sysctl */
+ 
+ static const int cl[] = {
+ 	CLOCK_REALTIME,
+-- 
+2.11.0
+

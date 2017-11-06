@@ -1,0 +1,26 @@
+From 8baa48fa6ef44abe7ab2eb9c7e2ca83076d843ca Mon Sep 17 00:00:00 2001
+From: Alex Catarineu <alex@cliqz.com>
+Date: Mon, 6 Nov 2017 18:47:54 +0100
+Subject: [PATCH] Apply openbsd patches in update.sh
+
+---
+ update.sh | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/update.sh b/update.sh
+index 619a277..c0e41dd 100755
+--- a/update.sh
++++ b/update.sh
+@@ -14,7 +14,8 @@ if [ ! -d openbsd ]; then
+ fi
+ (cd openbsd
+  git checkout $openbsd_branch
+- git pull --rebase)
++ git pull --rebase
++ git apply ../../../patches/libressl/openbsd/*)
+ 
+ # setup source paths
+ CWD=`pwd`
+-- 
+2.11.0
+

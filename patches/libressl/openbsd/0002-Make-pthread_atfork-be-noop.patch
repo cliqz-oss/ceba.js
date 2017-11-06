@@ -1,0 +1,25 @@
+From 87d414510924fd9d007f6634ea52427068fac97c Mon Sep 17 00:00:00 2001
+From: Alex Catarineu <a.catarineu@gmail.com>
+Date: Sun, 24 Sep 2017 13:37:58 +0200
+Subject: [PATCH 2/2] Make pthread_atfork be noop
+
+---
+ src/lib/libcrypto/arc4random/arc4random_linux.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/lib/libcrypto/arc4random/arc4random_linux.h b/src/lib/libcrypto/arc4random/arc4random_linux.h
+index 879f96639..be1a7354f 100644
+--- a/src/lib/libcrypto/arc4random/arc4random_linux.h
++++ b/src/lib/libcrypto/arc4random/arc4random_linux.h
+@@ -37,7 +37,7 @@ extern void *__dso_handle;
+ extern int __register_atfork(void (*)(void), void(*)(void), void (*)(void), void *);
+ #define _ARC4_ATFORK(f) __register_atfork(NULL, NULL, (f), __dso_handle)
+ #else
+-#define _ARC4_ATFORK(f) pthread_atfork(NULL, NULL, (f))
++#define _ARC4_ATFORK(f) ((void)0)
+ #endif
+ 
+ static inline void
+-- 
+2.11.0
+
