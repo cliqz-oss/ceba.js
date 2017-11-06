@@ -12,3 +12,6 @@
 - Sync FS to indexedDB from time to time, to improve bootstrap speed.
 - Review js libraries, we should make sure that we don't compile with different emscripten version. Is there a better approach?
 - Need to put some load/let it run for some time, and check for errors...
+- Try other options different than client (hidden service?).
+- Can we have special compilation, hardcoding main.c parameters (client, etc...)?
+- Check "warning: unresolved symbol: getgrgid".

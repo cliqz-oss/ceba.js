@@ -114,7 +114,7 @@ onmessage = function (e) {
     bridge = e.data.bridge;
 
     function doRun() {
-      Module.callMain(['usebridges', '1', 'bridge', bridge, 'DataDirectory', '/working1']);
+      Module.callMain(['usebridges', '1', 'bridge', bridge, 'DataDirectory', '/torjs']);
     }
 
     if (canRun) {
@@ -359,13 +359,20 @@ Module.websocketserver = function(config) {
   }, 100);
 };
 
+function persist() {
+  FS.syncfs(false, function (err) {
+    setTimeout(persist, 60 * 1000);
+  });
+}
+
 Module.preRun = (Module.preRun || []).concat(function() {
   addRunDependency('syncfs');
-  FS.mkdir('/working1');
-  FS.mount(IDBFS, {}, '/working1');
+  FS.mkdir('/torjs');
+  FS.mount(IDBFS, {}, '/torjs');
   FS.syncfs(true, function (err) {
     if (err) throw err;
     removeRunDependency('syncfs');
+    setTimeout(persist, 20 * 1000); // TODO: do after bootstrap...
   });
 });
 
