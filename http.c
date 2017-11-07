@@ -58,45 +58,45 @@ void EMSCRIPTEN_KEEPALIVE myrequest(
 
   if (http_uri == NULL) {
     error = "malformed_url";
-		goto _error;
-	}
+    goto _error;
+  }
 
   scheme = evhttp_uri_get_scheme(http_uri);
-	if (scheme == NULL || (strcasecmp(scheme, "https") != 0 &&
-	                       strcasecmp(scheme, "http") != 0)) {
-		error = "url must be http or https";
-		goto _error;
-	}
+  if (scheme == NULL || (strcasecmp(scheme, "https") != 0 &&
+                         strcasecmp(scheme, "http") != 0)) {
+    error = "url must be http or https";
+    goto _error;
+  }
 
-	host = evhttp_uri_get_host(http_uri);
-	if (host == NULL) {
-		error = "url must have a host";
-		goto _error;
-	}
+  host = evhttp_uri_get_host(http_uri);
+  if (host == NULL) {
+    error = "url must have a host";
+    goto _error;
+  }
 
-	int port = evhttp_uri_get_port(http_uri);
-	if (port == -1) {
-		port = (strcasecmp(scheme, "http") == 0) ? 80 : 443;
-	}
+  int port = evhttp_uri_get_port(http_uri);
+  if (port == -1) {
+    port = (strcasecmp(scheme, "http") == 0) ? 80 : 443;
+  }
 
-	path = evhttp_uri_get_path(http_uri);
-	if (path == NULL || strlen(path) == 0) {
-		path = "/";
-	}
+  path = evhttp_uri_get_path(http_uri);
+  if (path == NULL || strlen(path) == 0) {
+    path = "/";
+  }
 
-	query = evhttp_uri_get_query(http_uri);
+  query = evhttp_uri_get_query(http_uri);
 
   size_t uri_len;
-	if (query == NULL) {
+  if (query == NULL) {
     uri_len = strlen(path);
     uri = malloc(uri_len + 1);
-		snprintf(uri, uri_len, "%s", path);
-	} else {
+    snprintf(uri, uri_len, "%s", path);
+  } else {
     uri_len = strlen(path) + strlen(query) + 1;
     uri = malloc(uri_len + 1);
-		snprintf(uri, uri_len, "%s?%s", path, query);
-	}
-	uri[uri_len] = '\0';
+    snprintf(uri, uri_len, "%s?%s", path, query);
+  }
+  uri[uri_len] = '\0';
 
   // TODO: better way?
   if (error) {
