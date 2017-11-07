@@ -17,6 +17,7 @@ struct MyContext {
   struct evhttp_request *req;
   struct evhttp_uri *http_uri;
   void (*cb)(double, const char *, int, const char *, int);
+  char *uri;
 };
 
 void http_request_done(struct evhttp_request *req, void *arg){
@@ -40,13 +41,20 @@ void http_request_done(struct evhttp_request *req, void *arg){
     }
     evhttp_connection_free(ctx->conn);
     evhttp_uri_free(ctx->http_uri);
+    free(ctx->uri);
     free(ctx);
 }
 
-void EMSCRIPTEN_KEEPALIVE myrequest(double id, char *url, char *method, int timeout, void(*cb)(double, const char *error, int code, const char *body, int body_len)){
+void EMSCRIPTEN_KEEPALIVE myrequest(
+  double id,
+  char *url,
+  char *method,
+  int timeout,
+  void(*cb)(double, const char *error, int code, const char *body, int body_len)
+) {
   struct evhttp_uri *http_uri = evhttp_uri_parse(url);
   const char *scheme, *host, *path, *query, *error;
-  char uri[256]; // TODO: always less than 256?
+  char *uri = NULL;
 
   if (http_uri == NULL) {
     error = "malformed_url";
@@ -72,21 +80,28 @@ void EMSCRIPTEN_KEEPALIVE myrequest(double id, char *url, char *method, int time
 	}
 
 	path = evhttp_uri_get_path(http_uri);
-	if (strlen(path) == 0) {
+	if (path == NULL || strlen(path) == 0) {
 		path = "/";
 	}
 
 	query = evhttp_uri_get_query(http_uri);
+
+  size_t uri_len;
 	if (query == NULL) {
-		snprintf(uri, sizeof(uri) - 1, "%s", path);
+    uri_len = strlen(path);
+    uri = malloc(uri_len + 1);
+		snprintf(uri, uri_len, "%s", path);
 	} else {
-		snprintf(uri, sizeof(uri) - 1, "%s?%s", path, query);
+    uri_len = strlen(path) + strlen(query) + 1;
+    uri = malloc(uri_len + 1);
+		snprintf(uri, uri_len, "%s?%s", path, query);
 	}
-	uri[sizeof(uri) - 1] = '\0';
+	uri[uri_len] = '\0';
 
   // TODO: better way?
   if (error) {
 _error:
+    free(uri);
     evhttp_uri_free(http_uri);
     cb(id, error, 0, NULL, 0);
     return;
@@ -101,12 +116,13 @@ _error:
 
   struct MyContext *ctx = malloc(sizeof(struct MyContext));
 
+  ctx->uri = uri;
   ctx->id = id;
   ctx->cb = cb;
   ctx->http_uri = http_uri;
   ctx->conn = evhttp_connection_base_new(tor_libevent_get_base(), NULL, host, port);
   ctx->req = evhttp_request_new(http_request_done, ctx);
-  evhttp_add_header(ctx->req->output_headers, "Host", "localhost");
+  evhttp_add_header(ctx->req->output_headers, "Host", host);
   evhttp_make_request(ctx->conn, ctx->req, method_code, uri);
   evhttp_connection_set_timeout(ctx->req->evcon, timeout);
 }
