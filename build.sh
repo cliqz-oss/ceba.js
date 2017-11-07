@@ -29,7 +29,7 @@ cp ./external/libressl/ssl/.libs/libssl.a ./external/libressl/tls/.libs/libtls.a
 cp ./external/libevent/.libs/*.a ./external/libevent
 
 
-(cd external/tor && ./autogen.sh &&\
+(cd external/tor && git apply ../../patches/tor/* && ./autogen.sh &&\
 CPPFLAGS="-Oz" emconfigure ./configure --with-libevent-dir=../libevent/ --with-ssl-dir=../libressl/ --with-zlib-dir=../zlib/ --disable-asciidoc && emmake make)
 
 

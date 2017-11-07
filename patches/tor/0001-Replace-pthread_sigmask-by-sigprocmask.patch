@@ -1,0 +1,25 @@
+From 99324287bfbd35203599faab40e65f11cc71717b Mon Sep 17 00:00:00 2001
+From: Alex Catarineu <a.catarineu@gmail.com>
+Date: Sun, 10 Sep 2017 23:11:04 +0200
+Subject: [PATCH 1/2] Replace pthread_sigmask by sigprocmask
+
+---
+ src/common/compat_pthreads.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/common/compat_pthreads.c b/src/common/compat_pthreads.c
+index 002274c46..7cb6281d2 100644
+--- a/src/common/compat_pthreads.c
++++ b/src/common/compat_pthreads.c
+@@ -39,7 +39,7 @@ tor_pthread_helper_fn(void *_data)
+   sigset_t sigs;
+   /* We're in a subthread; don't handle any signals here. */
+   sigfillset(&sigs);
+-  pthread_sigmask(SIG_SETMASK, &sigs, NULL);
++  sigprocmask(SIG_SETMASK, &sigs, NULL);
+ 
+   func = data->func;
+   arg = data->data;
+-- 
+2.11.0
+
