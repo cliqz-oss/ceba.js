@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+./clean.sh
+
 # TODO: can we try with emconfigure? It's just the optimization flags...
 # TODO: LZ4?
 # TODO: SINGLE_FILE = 1

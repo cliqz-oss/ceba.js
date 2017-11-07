@@ -15,5 +15,4 @@
 - Try other options different than client (hidden service?).
 - Can we have special compilation, hardcoding main.c parameters (client, etc...)?
 - Check "warning: unresolved symbol: getgrgid".
-- Make build idempotent.
 - BUG: if you do many requests (overload), more ws are opened to the bridge, but older connections are not closed...
