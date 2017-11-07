@@ -114,6 +114,7 @@ mergeInto(LibraryManager.library, {
       close: function(stream) {
         var sock = stream.node.sock;
         sock.sock_ops.close(sock);
+        FS.destroyNode(stream.node);
       }
     },
     nextname: function() {
