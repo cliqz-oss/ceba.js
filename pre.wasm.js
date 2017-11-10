@@ -32,12 +32,40 @@ var timeout;
 var myrequest;
 var cb_pointer;
 
+// TODO: double check this, are we freeing everything?
+function stringToPointer(str) {
+  var len = Module.lengthBytesUTF8(str);
+  var buf = Module._malloc(len + 1);
+  Module.stringToUTF8(str, buf, len + 1);
+  return buf;
+}
+
+function arrayOfStringsToPointer(array) {
+  var buf = Module._malloc(array.length * 4);
+  array.forEach(function(str, i) {
+    Module.setValue(buf + (i * 4), stringToPointer(str), 'i32');
+  });
+  return buf;
+}
+
+function freeArrayOfStrings(buf, len) {
+  for (var i = 0; i < len; ++i) {
+    Module._free(Module.getValue(buf + (i * 4), 'i32'));
+  }
+  Module._free(buf);
+}
+
 function processMessage(m) {
   var id = m.id;
   if (m.action === 'request') {
     if (!myrequest) {
-      myrequest = Module.cwrap('myrequest', null, ['number', 'string', 'string', 'number', 'number']);
-      cb_pointer = Module.Runtime.addFunction(function(id, error, code, body, body_len) {
+      cb_pointer = Module.Runtime.addFunction(function(id, error, code, body, body_len, headers_keys, headers_values, headers_len) {
+        var myheaders = {};
+        for (var i = 0; i < headers_len; ++i) {
+          var ptrKey = Module.getValue(headers_keys + (i * 4), 'i32');
+          var ptrValue = Module.getValue(headers_values + (i * 4), 'i32');
+          myheaders[Module.UTF8ToString(ptrKey)] = Module.UTF8ToString(ptrValue);
+        }
        var mybody = (new Uint8Array(
          Module.HEAPU8.buffer,
          body,
@@ -57,12 +85,51 @@ function processMessage(m) {
            response: {
              status: code,
              body: mybody,
+             headers: myheaders,
            },
          });
        }
      });
+
+      myrequest = Module.cwrap(
+        'myrequest',
+        null,
+        [
+          'number', // id
+          'string', // url
+          'string', // method
+          'number', // headers_keys
+          'number', // header_values
+          'number', // headers_len
+          'array', // body_in
+          'number', // body_in_len
+          'number', // timeout
+          'number', // cb
+        ]
+      );
     }
-    myrequest(id, m.request.url, m.request.method, timeout, cb_pointer);
+
+    var headers_keys = arrayOfStringsToPointer(m.request.headers.map(function(x) { return x[0]; }));
+    var headers_values = arrayOfStringsToPointer(m.request.headers.map(function(x) { return x[1]; }));
+    var headers_len = m.request.headers.length;
+
+    var body_in = new Uint8Array(m.request.body);
+    var body_in_len = body_in.length;
+
+    myrequest(
+      id,
+      m.request.url,
+      m.request.method,
+      headers_keys,
+      headers_values,
+      headers_len,
+      body_in,
+      body_in_len,
+      timeout,
+      cb_pointer
+    );
+    freeArrayOfStrings(headers_keys);
+    freeArrayOfStrings(headers_values);
   } else if (m.action === 'socket') {
     // onopen, onclose, onmessage, onerror
     var ip = randomIp();

@@ -17,3 +17,4 @@
 - Check "warning: unresolved symbol: getgrgid".
 - BUG: if you do many requests (overload), more ws are opened to the bridge, but older connections are not closed...
 - Make http.c buildable for native and check with Valgrind.
+- Do we follow redirects?

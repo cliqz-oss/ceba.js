@@ -26,12 +26,22 @@ function FetchTorFactory({ TIMEOUT = 10 }) {
       setTimeout(reject.bind(null, new TypeError('Timeout (client)')), 2 * TIMEOUT * 1000); // This one should never trigger...
 
       // TODO: implement other options...
-      const { url, method } = new Request(input, init);
-      worker.postMessage({
-        id,
-        action: 'request',
-        request: { url, method },
-      });
+      const request = new Request(input, init);
+      const { url, method, headers } = request;
+
+      request.arrayBuffer().then((x) => {
+        worker.postMessage({
+          id,
+          action: 'request',
+          request: {
+            url,
+            method,
+            headers: [...headers.entries()],
+            body: new Uint8Array(x),
+          },
+        });
+      }).catch(reject);
+
     })).then((response) => {
       delete requests[id];
       if (!response.status) {
