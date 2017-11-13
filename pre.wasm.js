@@ -28,6 +28,7 @@ var sockets = {};
 var requests = {};
 var canRun = false;
 var timeout;
+var retries;
 
 var myrequest;
 var cb_pointer;
@@ -104,6 +105,7 @@ function processMessage(m) {
           'array', // body_in
           'number', // body_in_len
           'number', // timeout
+          'number', // retries
           'number', // cb
         ]
       );
@@ -126,6 +128,7 @@ function processMessage(m) {
       body_in,
       body_in_len,
       timeout,
+      retries,
       cb_pointer
     );
     freeArrayOfStrings(headers_keys);
@@ -178,6 +181,7 @@ var bridge;
 onmessage = function (e) {
   if (e.data.action === 'run') {
     timeout = e.data.timeout || 10;
+    retries = e.data.retries || 0;
     bridge = e.data.bridge;
 
     function doRun() {

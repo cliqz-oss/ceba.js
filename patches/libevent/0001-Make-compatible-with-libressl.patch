@@ -1,0 +1,40 @@
+From ce83e9f379a13d3a905d968b0e764e2422af71c3 Mon Sep 17 00:00:00 2001
+From: Alex Catarineu <alex@cliqz.com>
+Date: Mon, 13 Nov 2017 12:34:47 +0100
+Subject: [PATCH] Make compatible with libressl
+
+---
+ openssl-compat.h                     | 4 ++++
+ sample/openssl_hostname_validation.c | 1 +
+ 2 files changed, 5 insertions(+)
+
+diff --git a/openssl-compat.h b/openssl-compat.h
+index 69afc716..7e3462e1 100644
+--- a/openssl-compat.h
++++ b/openssl-compat.h
+@@ -1,6 +1,10 @@
+ #ifndef OPENSSL_COMPAT_H
+ #define OPENSSL_COMPAT_H
+ 
++#if defined (LIBRESSL_VERSION_NUMBER)
++#define OPENSSL_VERSION_NUMBER 0x1000107fL
++#endif
++
+ #if OPENSSL_VERSION_NUMBER < 0x10100000L
+ 
+ static inline BIO_METHOD *BIO_meth_new(int type, const char *name)
+diff --git a/sample/openssl_hostname_validation.c b/sample/openssl_hostname_validation.c
+index 40312f2e..e28718ea 100644
+--- a/sample/openssl_hostname_validation.c
++++ b/sample/openssl_hostname_validation.c
+@@ -43,6 +43,7 @@ SOFTWARE.
+ #include <openssl/ssl.h>
+ #include <string.h>
+ 
++#include "openssl-compat.h"
+ #include "openssl_hostname_validation.h"
+ #include "hostcheck.h"
+ 
+-- 
+2.11.0
+
