@@ -1,6 +1,6 @@
 // This goes inside worker (from https://github.com/niklasf/stockfish.js)
-var Module;
-if (!Module) Module = (typeof Module !== 'undefined' ? Module : null) || {};
+//var Module;
+//if (!Module) Module = (typeof Module !== 'undefined' ? Module : null) || {};
 
 function isPrivate(ip) {
   return /^10\.|^192\.168\.|^172\.16\.|^172\.17\.|^172\.18\.|^172\.19\.|^172\.20\.|^172\.21\.|^172\.22\.|^172\.23\.|^172\.24\.|^172\.25\.|^172\.26\.|^172\.27\.|^172\.28\.|^172\.29\.|^172\.30\.|^172\.31\./.test(ip);
@@ -35,40 +35,40 @@ var cb_pointer;
 
 // TODO: double check this, are we freeing everything?
 function stringToPointer(str) {
-  var len = Module.lengthBytesUTF8(str);
-  var buf = Module._malloc(len + 1);
-  Module.stringToUTF8(str, buf, len + 1);
+  var len = lengthBytesUTF8(str);
+  var buf = _malloc(len + 1);
+  stringToUTF8(str, buf, len + 1);
   return buf;
 }
 
 function arrayOfStringsToPointer(array) {
-  var buf = Module._malloc(array.length * 4);
+  var buf = _malloc(array.length * 4);
   array.forEach(function(str, i) {
-    Module.setValue(buf + (i * 4), stringToPointer(str), 'i32');
+    setValue(buf + (i * 4), stringToPointer(str), 'i32');
   });
   return buf;
 }
 
 function freeArrayOfStrings(buf, len) {
   for (var i = 0; i < len; ++i) {
-    Module._free(Module.getValue(buf + (i * 4), 'i32'));
+    _free(getValue(buf + (i * 4), 'i32'));
   }
-  Module._free(buf);
+  _free(buf);
 }
 
 function processMessage(m) {
   var id = m.id;
   if (m.action === 'request') {
     if (!myrequest) {
-      cb_pointer = Module.Runtime.addFunction(function(id, error, code, body, body_len, headers_keys, headers_values, headers_len) {
+      cb_pointer = addFunction(function(id, error, code, body, body_len, headers_keys, headers_values, headers_len) {
         var myheaders = {};
         for (var i = 0; i < headers_len; ++i) {
-          var ptrKey = Module.getValue(headers_keys + (i * 4), 'i32');
-          var ptrValue = Module.getValue(headers_values + (i * 4), 'i32');
-          myheaders[Module.UTF8ToString(ptrKey)] = Module.UTF8ToString(ptrValue);
+          var ptrKey = getValue(headers_keys + (i * 4), 'i32');
+          var ptrValue = getValue(headers_values + (i * 4), 'i32');
+          myheaders[UTF8ToString(ptrKey)] = UTF8ToString(ptrValue);
         }
        var mybody = (new Uint8Array(
-         Module.HEAPU8.buffer,
+         HEAPU8.buffer,
          body,
          body_len
        )).slice();
@@ -77,7 +77,7 @@ function processMessage(m) {
          postMessage({
            action: 'response',
            id: id,
-           error: Module.UTF8ToString(error),
+           error: UTF8ToString(error),
          });
        } else {
          postMessage({
@@ -92,7 +92,7 @@ function processMessage(m) {
        }
      });
 
-      myrequest = Module.cwrap(
+      myrequest = cwrap(
         'myrequest',
         null,
         [

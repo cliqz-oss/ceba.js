@@ -5,7 +5,7 @@ mergeInto(LibraryManager.library, {
     mount: function(mount) {
       // If Module['websocket'] has already been defined (e.g. for configuring
       // the subprotocol/url) use that, if not initialise it to a new object.
-      Module['websocket'] = (Module['websocket'] &&
+      Module['websocket'] = (Module['websocket'] && 
                              ('object' === typeof Module['websocket'])) ? Module['websocket'] : {};
 
       // Add the Event registration mechanism to the exported websocket configuration
@@ -195,6 +195,12 @@ mergeInto(LibraryManager.library, {
             // The node ws library API for specifying optional subprotocol is slightly different than the browser's.
             var opts = ENVIRONMENT_IS_NODE ? {'protocol': subProtocols.toString()} : subProtocols;
 
+            // some webservers (azure) does not support subprotocol header
+            if (runtimeConfig && null === Module['websocket']['subprotocol']) {
+              subProtocols = 'null';
+              opts = undefined;
+            }
+
 #if SOCKET_DEBUG
             Module.print('connect: ' + url + ', ' + subProtocols.toString());
 #endif
@@ -265,7 +271,6 @@ mergeInto(LibraryManager.library, {
               queued = peer.dgram_send_queue.shift();
             }
           } catch (e) {
-            console.error('joder...', e);
             // not much we can do here in the way of proper error handling as we've already
             // lied and said this data was sent. shut it down.
             peer.socket.close();
@@ -514,7 +519,7 @@ mergeInto(LibraryManager.library, {
         });
         sock.server.on('error', function(error) {
           // Although the ws library may pass errors that may be more descriptive than
-          // ECONNREFUSED they are not necessarily the expected error code e.g.
+          // ECONNREFUSED they are not necessarily the expected error code e.g. 
           // ENOTFOUND on getaddrinfo seems to be node.js specific, so using EHOSTUNREACH
           // is still probably the most useful thing to do. This error shouldn't
           // occur in a well written app as errors should get trapped in the compiled
@@ -581,12 +586,23 @@ mergeInto(LibraryManager.library, {
         // create a copy of the incoming data to send, as the WebSocket API
         // doesn't work entirely with an ArrayBufferView, it'll just send
         // the entire underlying buffer
-        var data;
-        if (buffer instanceof Array || buffer instanceof ArrayBuffer) {
-          data = buffer.slice(offset, offset + length);
-        } else {  // ArrayBufferView
-          data = buffer.buffer.slice(buffer.byteOffset + offset, buffer.byteOffset + offset + length);
+        if (ArrayBuffer.isView(buffer)) {
+          offset += buffer.byteOffset;
+          buffer = buffer.buffer;
         }
+
+        var data;
+#if USE_PTHREADS
+        // WebSockets .send() does not allow passing a SharedArrayBuffer, so clone the portion of the SharedArrayBuffer as a regular
+        // ArrayBuffer that we want to send.
+        if (buffer instanceof SharedArrayBuffer) {
+          data = new Uint8Array(new Uint8Array(buffer.slice(offset, offset + length))).buffer;
+        } else {
+#endif
+          data = buffer.slice(offset, offset + length);
+#if USE_PTHREADS
+        }
+#endif
 
         // if we're emulating a connection-less dgram socket and don't have
         // a cached connection, queue the buffer to send upon connect and
@@ -691,10 +707,10 @@ mergeInto(LibraryManager.library, {
     function _callback(data) {
       try {
         if (event === 'error') {
-          var sp = Runtime.stackSave();
+          var sp = stackSave();
           var msg = allocate(intArrayFromString(data[2]), 'i8', ALLOC_STACK);
           Module['dynCall_viiii'](callback, data[0], data[1], msg, userData);
-          Runtime.stackRestore(sp);
+          stackRestore(sp);
         } else {
           Module['dynCall_vii'](callback, data, userData);
         }

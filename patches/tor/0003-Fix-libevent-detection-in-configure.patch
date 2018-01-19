@@ -1,0 +1,26 @@
+From 7a17a4da5c9da5dcf40897657eb3f4244d3e2781 Mon Sep 17 00:00:00 2001
+From: Alex Catarineu <alex@cliqz.com>
+Date: Fri, 19 Jan 2018 18:47:51 +0100
+Subject: [PATCH] Fix libevent detection in configure
+
+---
+ configure.ac | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 85935364d..ec1f4a440 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -620,7 +620,8 @@ TOR_SEARCH_LIBRARY(libevent, $trylibeventdir, [-levent $STATIC_LIBEVENT_FLAGS $T
+ #include <winsock2.h>
+ #endif
+ struct event_base;
+-struct event_base *event_base_new(void);],
++struct event_base *event_base_new(void);
++void event_base_free(struct event_base *);],
+     [
+ #ifdef _WIN32
+ {WSADATA d; WSAStartup(0x101,&d); }
+-- 
+2.11.0
+

@@ -331,6 +331,7 @@ var SyscallsLibrary = {
 #else
     var stream = SYSCALLS.getStreamFromFD(), op = SYSCALLS.get();
     switch (op) {
+      case {{{ cDefine('TCGETA') }}}:
       case {{{ cDefine('TCGETS') }}}: {
         if (!stream.tty) return -ERRNO_CODES.ENOTTY;
 #if SYSCALL_DEBUG
@@ -338,7 +339,12 @@ var SyscallsLibrary = {
 #endif
         return 0;
       }
-      case {{{ cDefine('TCSETS') }}}: {
+      case {{{ cDefine('TCSETA') }}}:
+      case {{{ cDefine('TCSETAW') }}}:
+      case {{{ cDefine('TCSETAF') }}}:
+      case {{{ cDefine('TCSETS') }}}:
+      case {{{ cDefine('TCSETSW') }}}:
+      case {{{ cDefine('TCSETSF') }}}: {
         if (!stream.tty) return -ERRNO_CODES.ENOTTY;
         return 0; // no-op, not actually adjusting terminal settings
       }
@@ -570,7 +576,7 @@ var SyscallsLibrary = {
         for (var i = 0; i < num; i++) {
           var iovbase = {{{ makeGetValue('iov', '(' + C_STRUCTS.iovec.__size__ + ' * i) + ' + C_STRUCTS.iovec.iov_base, 'i8*') }}};
           var iovlen = {{{ makeGetValue('iov', '(' + C_STRUCTS.iovec.__size__ + ' * i) + ' + C_STRUCTS.iovec.iov_len, 'i32') }}};
-          for (var j = 0; j < iovlen; j++) {
+          for (var j = 0; j < iovlen; j++) {  
             view[offset++] = {{{ makeGetValue('iovbase', 'j', 'i8') }}};
           }
         }
@@ -720,7 +726,7 @@ var SyscallsLibrary = {
     assert(!exceptfds, 'exceptfds not supported');
 
     var total = 0;
-
+    
     var srcReadLow = (readfds ? {{{ makeGetValue('readfds', 0, 'i32') }}} : 0),
         srcReadHigh = (readfds ? {{{ makeGetValue('readfds', 4, 'i32') }}} : 0);
     var srcWriteLow = (writefds ? {{{ makeGetValue('writefds', 0, 'i32') }}} : 0),
@@ -787,7 +793,7 @@ var SyscallsLibrary = {
       {{{ makeSetValue('exceptfds', '0', 'dstExceptLow', 'i32') }}};
       {{{ makeSetValue('exceptfds', '4', 'dstExceptHigh', 'i32') }}};
     }
-
+    
     return total;
   },
   __syscall144: function(which, varargs) { // msync
@@ -802,7 +808,20 @@ var SyscallsLibrary = {
     return SYSCALLS.doReadv(stream, iov, iovcnt);
   },
 #if NO_FILESYSTEM
-  __syscall146__postset: '/* flush anything remaining in the buffer during shutdown */ __ATEXIT__.push(function() { var fflush = Module["_fflush"]; if (fflush) fflush(0); var printChar = ___syscall146.printChar; if (!printChar) return; var buffers = ___syscall146.buffers; if (buffers[1].length) printChar(1, {{{ charCode("\n") }}}); if (buffers[2].length) printChar(2, {{{ charCode("\n") }}}); });',
+  $flush_NO_FILESYSTEM: function() {
+    // flush anything remaining in the buffers during shutdown
+    var fflush = Module["_fflush"];
+    if (fflush) fflush(0);
+    var printChar = ___syscall146.printChar;
+    if (!printChar) return;
+    var buffers = ___syscall146.buffers;
+    if (buffers[1].length) printChar(1, {{{ charCode("\n") }}});
+    if (buffers[2].length) printChar(2, {{{ charCode("\n") }}});
+  },
+  __syscall146__deps: ['$flush_NO_FILESYSTEM'],
+#if NO_EXIT_RUNTIME == 0
+  __syscall146__postset: '__ATEXIT__.push(flush_NO_FILESYSTEM);',
+#endif
 #endif
   __syscall146: function(which, varargs) { // writev
 #if NO_FILESYSTEM == 0
@@ -1250,7 +1269,7 @@ var SyscallsLibrary = {
     nanoseconds = {{{ makeGetValue('times', C_STRUCTS.timespec.tv_nsec, 'i32') }}};
     var mtime = (seconds*1000) + (nanoseconds/(1000*1000));
     FS.utime(path, atime, mtime);
-    return 0;
+    return 0;  
   },
   __syscall324: function(which, varargs) { // fallocate
     var stream = SYSCALLS.getStreamFromFD(), mode = SYSCALLS.get(), offset = SYSCALLS.get64(), len = SYSCALLS.get64();

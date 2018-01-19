@@ -24,7 +24,7 @@ cp ./external/libressl/ssl/.libs/libssl.a ./external/libressl/tls/.libs/libtls.a
 # CPPFLAGS="-O2" emconfigure ./configure --disable-thread-support --disable-shared --disable-openssl --disable-samples --disable-libevent-regress
 
 (cd external/libevent && ./autogen.sh && \
- CPPFLAGS="-O2 -I$HOME/torjs/external/zlib/include -I$HOME/torjs/external/zlib -I$HOME/torjs/external/libressl -I$HOME/torjs/external/libressl/include" LDFLAGS="-L$HOME/torjs/external/zlib -L$HOME/torjs/external/libressl" emconfigure ./configure --disable-thread-support --disable-shared &&\
+ CPPFLAGS="-O2 -I../zlib/include -I../zlib -I../libressl -I../libressl/include" LDFLAGS="-L../zlib -L../libressl" emconfigure ./configure --disable-thread-support --disable-shared &&\
  sed -i.bak -e 's/#define HAVE_ARC4RANDOM 1/\/\/ #define HAVE_ARC4RANDOM 0/' ./config.h &&\
  git apply ../../patches/libevent/* &&\
  emmake make)
