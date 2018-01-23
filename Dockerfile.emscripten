@@ -1,0 +1,28 @@
+#
+# docker build . -f Dockerfile.emscripten -t torjs_emscripten
+#
+# Sources:
+# http://webassembly.org/getting-started/developers-guide/
+#
+FROM ubuntu:17.10
+
+ARG EMSCRIPTEN_VERSION=1.37.28
+
+RUN apt-get update && \
+    apt-get install -y \
+      build-essential \
+      cmake \
+      curl \
+      git-core \
+      python \
+      default-jre \
+    && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -f /var/cache/apt/*.bin && \
+    cd / && git clone https://github.com/juj/emsdk.git && \
+    cd emsdk && \
+    ./emsdk install sdk-$EMSCRIPTEN_VERSION-64bit && \
+    ./emsdk activate sdk-$EMSCRIPTEN_VERSION-64bit
+
+WORKDIR emsdk
+ENV PATH "$PATH:/emsdk/emscripten/$EMSCRIPTEN_VERSION"

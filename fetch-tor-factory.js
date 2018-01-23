@@ -1,8 +1,8 @@
 // TODO: something to wait for tor bootstrap?
 
-function FetchTorFactory({ TIMEOUT = 10 }) {
+function FetchTorFactory({ timeout = 10, bridge = '18.194.182.20:9999' }) {
   const worker = new Worker('tor.js');
-  worker.postMessage({ action: 'run', bridge: '18.194.182.20:9999', timeout: TIMEOUT });
+  worker.postMessage({ action: 'run', bridge, timeout });
 
   const requests = {};
 
@@ -23,7 +23,7 @@ function FetchTorFactory({ TIMEOUT = 10 }) {
     const id = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
     return (new Promise((resolve, reject) => {
       requests[id] = { resolve, reject };
-      setTimeout(reject.bind(null, new TypeError('Timeout (client)')), 2 * TIMEOUT * 1000); // This one should never trigger...
+      setTimeout(reject.bind(null, new TypeError('Timeout (client)')), 2 * timeout * 1000); // This one should never trigger...
 
       // TODO: implement other options...
       const request = new Request(input, init);

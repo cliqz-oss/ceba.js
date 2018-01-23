@@ -1,22 +1,20 @@
 #!/bin/bash
 set -e
 
-./clean.sh
-
 # TODO: can we try with emconfigure? It's just the optimization flags...
 # TODO: LZ4?
 # TODO: SINGLE_FILE = 1
 
 ### libressl
 (cd external/libressl && \
- git apply ../../patches/libressl/portable/* && \
+ for file in ../../patches/libressl/portable/*; do patch -p1 -i "$file"; done && \
  ./autogen.sh && \
  CPPFLAGS="-O2" emconfigure ./configure --disable-asm --disable-shared && emmake make)
 
 cp ./external/libressl/ssl/.libs/libssl.a ./external/libressl/tls/.libs/libtls.a ./external/libressl/crypto/.libs/*.a ./external/libressl/
 
 ### zlib
-(cd external/zlib && AR=llvm-ar CFLAGS="-O2" CC=emcc ./configure --static && make)
+(cd external/zlib && AR=emar CFLAGS="-O2" CC=emcc ./configure --static && make)
 
 ### libevent
 
@@ -26,7 +24,7 @@ cp ./external/libressl/ssl/.libs/libssl.a ./external/libressl/tls/.libs/libtls.a
 (cd external/libevent && ./autogen.sh && \
  CPPFLAGS="-O2 -I../zlib/include -I../zlib -I../libressl -I../libressl/include" LDFLAGS="-L../zlib -L../libressl" emconfigure ./configure --disable-thread-support --disable-shared &&\
  sed -i.bak -e 's/#define HAVE_ARC4RANDOM 1/\/\/ #define HAVE_ARC4RANDOM 0/' ./config.h &&\
- git apply ../../patches/libevent/* &&\
+ for file in ../../patches/libevent/*; do patch -p1 -i "$file"; done && \
  emmake make)
 
 cp ./external/libevent/.libs/*.a ./external/libevent
@@ -34,8 +32,10 @@ cp ./external/libevent/.libs/*.a ./external/libevent
 
 ### tor
 
-(cd external/tor && git apply ../../patches/tor/* && ./autogen.sh &&\
+(cd external/tor && for file in ../../patches/tor/*; do patch -p1 -i "$file"; done && ./autogen.sh &&\
 CPPFLAGS="-Oz" emconfigure ./configure --with-libevent-dir=../libevent/ --with-ssl-dir=../libressl/ --with-zlib-dir=../zlib/ --disable-asciidoc && emmake make)
+
+mkdir -p build
 
 cp ./external/tor/src/or/tor ./build/tor.bc
 
