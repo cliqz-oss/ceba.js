@@ -18,7 +18,6 @@ RUN apt-get update && \
 RUN mkdir /torjs
 COPY build.sh /torjs
 COPY clean.sh /torjs
-COPY http /torjs/http
 COPY external /torjs/external
 COPY patches /torjs/patches
 COPY library_sockfs.js /torjs
