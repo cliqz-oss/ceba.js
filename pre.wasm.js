@@ -185,6 +185,12 @@ onmessage = function (e) {
     bridge = e.data.bridge;
 
     function doRun() {
+      if (e.data.silent) {
+        Module.print = function () {};
+      }
+      if (e.data.noErrors) {
+        Module.printErr = function () {};
+      }
       Module.callMain(['usebridges', '1', 'bridge', bridge, 'DataDirectory', '/torjs']);
     }
 
@@ -408,7 +414,6 @@ MyWebSocket.prototype.__defineGetter__('readyState', function() {
 
 // Module
 Module.wasmBinary = xhr.response;
-// Module.print = function() {};
 Module.noInitialRun = true;
 Module.WebSocket = MyWebSocket;
 Module.websocketserver = function(config) {
