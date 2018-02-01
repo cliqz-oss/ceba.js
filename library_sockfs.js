@@ -114,6 +114,8 @@ mergeInto(LibraryManager.library, {
       close: function(stream) {
         var sock = stream.node.sock;
         sock.sock_ops.close(sock);
+        // TODO: check this, it was done because nodes in FS were kept after sockets were
+        // closed.
         FS.destroyNode(stream.node);
       }
     },
@@ -311,27 +313,6 @@ mergeInto(LibraryManager.library, {
           Module['websocket'].emit('message', sock.stream.fd);
         };
 
-        // if (ENVIRONMENT_IS_NODE) {
-        //   peer.socket.on('open', handleOpen);
-        //   peer.socket.on('message', function(data, flags) {
-        //     if (!flags.binary) {
-        //       return;
-        //     }
-        //     handleMessage((new Uint8Array(data)).buffer);  // copy from node Buffer -> ArrayBuffer
-        //   });
-        //   peer.socket.on('close', function() {
-        //     Module['websocket'].emit('close', sock.stream.fd);
-        //   });
-        //   peer.socket.on('error', function(error) {
-        //     // Although the ws library may pass errors that may be more descriptive than
-        //     // ECONNREFUSED they are not necessarily the expected error code e.g.
-        //     // ENOTFOUND on getaddrinfo seems to be node.js specific, so using ECONNREFUSED
-        //     // is still probably the most useful thing to do.
-        //     sock.error = ERRNO_CODES.ECONNREFUSED; // Used in getsockopt for SOL_SOCKET/SO_ERROR test.
-        //     Module['websocket'].emit('error', [sock.stream.fd, sock.error, 'ECONNREFUSED: Connection refused']);
-        //     // don't throw
-        //   });
-        // } else {
           peer.socket.onopen = handleOpen;
           peer.socket.onclose = function() {
             Module['websocket'].emit('close', sock.stream.fd);
@@ -345,7 +326,6 @@ mergeInto(LibraryManager.library, {
             sock.error = ERRNO_CODES.ECONNREFUSED; // Used in getsockopt for SOL_SOCKET/SO_ERROR test.
             Module['websocket'].emit('error', [sock.stream.fd, sock.error, 'ECONNREFUSED: Connection refused']);
           };
-        // }
       },
 
       //
@@ -472,9 +452,6 @@ mergeInto(LibraryManager.library, {
         throw new FS.ErrnoError(ERRNO_CODES.EINPROGRESS);
       },
       listen: function(sock, backlog) {
-        // if (!ENVIRONMENT_IS_NODE) {
-        //   throw new FS.ErrnoError(ERRNO_CODES.EOPNOTSUPP);
-        // }
         if (sock.server) {
            throw new FS.ErrnoError(ERRNO_CODES.EINVAL);  // already listening
         }

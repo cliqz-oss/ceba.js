@@ -184,7 +184,7 @@ var SyscallsLibrary = {
       } else if (addrlen && family === 10) {
         {{{ makeSetValue('addrlen', 0, 28, 'i32') }}};
       } else {
-        console.error('que collons fas', family);
+        Module.printErr('__mywrite_sockaddr error ' + addrl + ' ' + family);
       }
       return __write_sockaddr(sa, family, addr, port);
     },
@@ -368,7 +368,7 @@ var SyscallsLibrary = {
         if (!stream.tty) return -ERRNO_CODES.ENOTTY;
         return 0;
       }
-      case 35090: {
+      case 35090: { // SIOCGIFCONF
         return -ERRNO_CODES.EINVAL;
       }
       default: abort('bad ioctl syscall ' + op);
@@ -528,13 +528,13 @@ var SyscallsLibrary = {
         HEAPU8.set(msg.buffer, buf);
         return msg.buffer.byteLength;
       }
-      case 13: {
+      case 13: { // shutdown
         // FIXME: implement
         var sock = SYSCALLS.getSocketFromFD(), how = SYSCALLS.get();
-        // console.log('FIXME: implement socketcall 13!', sock, how);
         return 0;
       }
       case 14: { // setsockopt
+        // FIXME: verify whether this is needed
         return 0;
         // return -ERRNO_CODES.ENOPROTOOPT; // The option is unknown at the level indicated.
       }
@@ -719,7 +719,7 @@ var SyscallsLibrary = {
     // timeout is always 0 - fully async
     var nfds = SYSCALLS.get(), readfds = SYSCALLS.get(), writefds = SYSCALLS.get(), exceptfds = SYSCALLS.get(), timeout = SYSCALLS.get();
 
-    // FIXME: patch!!!!
+    // FIXME: what are the implications of ignoring this?
     exceptfds = 0;
 
     assert(nfds <= 64, 'nfds must be less than or equal to 64');  // fd sets have 64 bits // TODO: this could be 1024 based on current musl headers
