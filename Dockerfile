@@ -1,11 +1,4 @@
-#
-# Assumes that the "torjs_emscripten" image is locally available.
-# Trying to resolve it from an official mirror will fail,
-# instead you should once build it locally:
-#
-# For details, see Dockerfile.emscripten
-#
-FROM torjs_emscripten
+FROM trzeci/emscripten:sdk-tag-1.37.28-64bit@sha256:2ae1da959eb0b4765a2624b05ff4a0ad55d044b4f324644b08bde5791bc3afb4
 
 RUN apt-get update && \
     apt-get install -y \
