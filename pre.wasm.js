@@ -223,7 +223,10 @@ onmessage = function (e) {
       }
       var args = ['DataDirectory', '/torjs'];
       if (e.data.bridge) {
-        args = args.concat(['usebridges', '1', 'bridge', e.data.bridge]);
+        args.push('usebridges', '1', 'bridge', e.data.bridge);
+      }
+      if (e.data.controlPort) {
+        args.push('ControlPort', e.data.controlPort);
       }
       Module.callMain(args);
     }
