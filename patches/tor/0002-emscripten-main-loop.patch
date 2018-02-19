@@ -29,7 +29,7 @@ index c340e4128..625766caa 100644
  
 +  #ifdef __EMSCRIPTEN__
 +  // TODO: why 30?
-+  emscripten_set_main_loop(emscripten_main_loop, 30, 1);
++  emscripten_set_main_loop(emscripten_main_loop, 100, 1);
 +  #else
    return run_main_loop_until_done();
 +  #endif
