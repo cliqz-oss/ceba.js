@@ -206,7 +206,7 @@ mergeInto(LibraryManager.library, {
 #if SOCKET_DEBUG
             Module.print('connect: ' + url + ', ' + subProtocols.toString());
 #endif
-            var WebSocketConstructor = Module['WebSocket'];
+            var WebSocketConstructor = Module['CustomSocket'];
             ws = new WebSocketConstructor(url, opts);
             ws.binaryType = 'arraybuffer';
           } catch (e) {
@@ -455,7 +455,7 @@ mergeInto(LibraryManager.library, {
         if (sock.server) {
            throw new FS.ErrnoError(ERRNO_CODES.EINVAL);  // already listening
         }
-        var WebSocketServer = Module['websocketserver'];
+        var WebSocketServer = Module['CustomSocketServer'];
         var host = sock.saddr;
 #if SOCKET_DEBUG
         console.log('listen: ' + host + ':' + sock.sport);
