@@ -4,7 +4,7 @@ An *experimental* WebAssembly build of the Tor client.
 
 ## Disclaimer
 
-This is is produced independently and carries no guarantee from the Tor Project organization. Any references to Tor do not imply endorsement from the Tor Project.
+This is produced independently and carries no guarantee from the Tor Project organization. Any references to Tor do not imply endorsement from the Tor Project.
 
 ## Build
 First it is needed to pull the submodules:
