@@ -78,7 +78,7 @@ We copy and patch a couple of libraries from ```https://github.com/kripken/emscr
 ## Persistence
 Usually the persistence APIs that are available in JavaScript environments are asynchronous, which could be a problem, because in native (C, C++) usually file system operations are synchronous (blocking). That is why Emscripten implements file system operations in-memory, to ensure that they can be executed fast and synchronously. To achieve persistence we must explicitly sync this in-memory FS state to disk (via some of the available or custom backends).
 
-Right now the way we handle persistence should probably be improved. It is somehow hardcoded in ```pre.js```. It assumes tor data directory will be in ```/torjs``` and persists periodically via indexedDB every minute. This almost forces to run it in a WebWorker, in the current state.
+Right now the way we handle persistence should probably be improved. It is somehow hardcoded in ```pre.js```. It assumes tor data directory will be in ```/torjs``` and persists periodically via indexedDB every minute.
 
 ## Caveats/concerns
 
