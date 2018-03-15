@@ -7,7 +7,10 @@ An *experimental* WebAssembly build of the Tor client.
 This is is produced independently and carries no guarantee from the Tor Project organization. Any references to Tor do not imply endorsement from the Tor Project.
 
 ## Build
-
+First it is needed to pull the submodules:
+```
+git submodule update --init
+```
 If Docker is installed and can be run then
 ```
 make
@@ -73,8 +76,7 @@ The patch is basically to define an appropriate ```OPENSSL_VERSION_NUMBER``` tak
 We copy and patch a couple of libraries from ```https://github.com/kripken/emscripten/tree/incoming/src```: ```library_sockfs.js``` and ```library_syscall.js```. We need this because even though Emscripten implements many syscalls and socket operations in a safe way, we still needed to make some modifications in order for the Tor wasm client to work. This modifications we make should be reviewed in detail at some point.
 
 ## Persistence
-
-Since most of the times the file syscalls are synchronous, Emscripten implements these operations in memory. To achieve persistence we must explicitly sync this in-memory fs state to disk (via some of the available or custom backends).
+Usually the persistence APIs that are available in JavaScript environments are asynchronous, which could be a problem, because in native (C, C++) usually file system operations are synchronous (blocking). That is why Emscripten implements file system operations in-memory, to ensure that they can be executed fast and synchronously. To achieve persistence we must explicitly sync this in-memory FS state to disk (via some of the available or custom backends).
 
 Right now the way we handle persistence should probably be improved. It is somehow hardcoded in ```pre.js```. It assumes tor data directory will be in ```/torjs``` and persists periodically via indexedDB every minute. This almost forces to run it in a WebWorker, in the current state.
 
