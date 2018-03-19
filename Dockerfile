@@ -15,7 +15,6 @@ COPY external /torjs/external
 COPY patches /torjs/patches
 COPY library_sockfs.js /torjs
 COPY library_syscall.js /torjs
-COPY pre.js /torjs
 WORKDIR /torjs
 
 RUN ./build.sh

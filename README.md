@@ -26,7 +26,7 @@ with the same effects.
 
 ## Usage
 
-The build process outputs two files: ```tor.js``` and ```tor.wasm```. We need to import the ```createModule``` function, which will differ depending on the environment:
+The build process outputs one file: ```tor.js```, which contains the WebAssembly module and all required glue code. We need to import the ```createModule``` function, which will differ depending on the environment:
 
 ### WebWorker
 ```js
@@ -54,6 +54,13 @@ Where ```arguments``` is an string array containing the arguments that would be 
 Emscripten networking implementation converts TCP sockets into WebSockets. Every TCP socket gets converted into a binary WebSocket with address: ```ws://address:port```. We make this configurable via the ```CustomSocket``` constructor parameter, which we can convert back to a TCP socket if we have an API available for that in the JavaScript context (e.g. Nodejs, Firefox legacy extension, etc.).
 
 Tor client usually listens for TCP connections at one or more ports (9050, ...). That is why we need ```CustomSocketServer```. Whenever the *native* code wants to listen to some port, an instance of this class will be created. By providing a custom implementation of this class we can communicate with each port in JavaScript, simulating the local listening servers.
+## Example
+
+You can try an example (should work with a NodeJS version supporting WebAssembly):
+```
+node examples/client.js SocksPort 6666
+```
+This should create a Tor client listening on socks port 6666. Note that the example does not handle reading or writing from the file system.
 
 ## Patches
 
@@ -77,8 +84,6 @@ We copy and patch a couple of libraries from ```https://github.com/kripken/emscr
 
 ## Persistence
 Usually the persistence APIs that are available in JavaScript environments are asynchronous, which could be a problem, because in native (C, C++) usually file system operations are synchronous (blocking). That is why Emscripten implements file system operations in-memory, to ensure that they can be executed fast and synchronously. To achieve persistence we must explicitly sync this in-memory FS state to disk (via some of the available or custom backends).
-
-Right now the way we handle persistence should probably be improved. It is somehow hardcoded in ```pre.js```. It assumes tor data directory will be in ```/torjs``` and persists periodically via indexedDB every minute.
 
 ## Caveats/concerns
 
