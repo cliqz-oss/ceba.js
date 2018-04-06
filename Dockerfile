@@ -13,6 +13,7 @@ COPY build.sh /torjs
 COPY clean.sh /torjs
 COPY external /torjs/external
 COPY patches /torjs/patches
+COPY pre.js /torjs
 COPY library_sockfs.js /torjs
 COPY library_syscall.js /torjs
 WORKDIR /torjs

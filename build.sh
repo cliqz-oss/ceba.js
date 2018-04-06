@@ -29,4 +29,4 @@ mkdir -p build
 cp ./external/tor/src/or/tor ./build/tor.bc
 
 emcc --js-library library_sockfs.js --js-library library_syscall.js -Oz --llvm-lto 1 \
- -s SINGLE_FILE=1 -s MODULARIZE=1 -s WASM=1 -s MEMFS_APPEND_TO_TYPED_ARRAYS=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 ./build/tor.bc -o ./build/tor.js
+ --pre-js pre.js -s MODULARIZE=1 -s WASM=1 -s MEMFS_APPEND_TO_TYPED_ARRAYS=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 ./build/tor.bc -o ./build/tor.js
