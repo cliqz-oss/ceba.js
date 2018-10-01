@@ -1,17 +1,34 @@
-From 8c011e4b3083dc5356347bb7a7f0ea88523b6778 Mon Sep 17 00:00:00 2001
+From fa08fd4e57ea92eb8ed4c420b370e6b31c825742 Mon Sep 17 00:00:00 2001
 From: Alex Catarineu <alex@cliqz.com>
 Date: Fri, 19 Jan 2018 18:51:01 +0100
 Subject: [PATCH] emscripten main loop
 
 ---
- src/or/main.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ src/common/compat_libevent.c |  4 ++++
+ src/or/main.c                | 21 +++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
+diff --git a/src/common/compat_libevent.c b/src/common/compat_libevent.c
+index e60eb148d..088a9dfd4 100644
+--- a/src/common/compat_libevent.c
++++ b/src/common/compat_libevent.c
+@@ -502,7 +502,11 @@ tor_libevent_free_all(void)
+ int
+ tor_libevent_run_event_loop(struct event_base *base, int once)
+ {
++  #ifdef __EMSCRIPTEN__
++  const int flags = EVLOOP_ONCE | EVLOOP_NONBLOCK;
++  #else
+   const int flags = once ? EVLOOP_ONCE : 0;
++  #endif
+   return event_base_loop(base, flags);
+ }
+ 
 diff --git a/src/or/main.c b/src/or/main.c
-index c340e4128..625766caa 100644
+index a93fdc392..95e84fbeb 100644
 --- a/src/or/main.c
 +++ b/src/or/main.c
-@@ -126,6 +126,11 @@
+@@ -132,6 +132,11 @@
  #include <systemd/sd-daemon.h>
  #endif /* defined(HAVE_SYSTEMD) */
  
@@ -22,34 +39,21 @@ index c340e4128..625766caa 100644
 +
  void evdns_shutdown(int);
  
- /********* PROTOTYPES **********/
-@@ -2595,7 +2600,12 @@ do_main_loop(void)
+ #ifdef HAVE_RUST
+@@ -2957,7 +2962,12 @@ do_main_loop(void)
    }
- #endif /* defined(HAVE_SYSTEMD) */
+ #endif
  
 +  #ifdef __EMSCRIPTEN__
-+  // TODO: why 30?
++  // TODO: make FPS configurable
 +  emscripten_set_main_loop(emscripten_main_loop, 100, 1);
 +  #else
    return run_main_loop_until_done();
 +  #endif
  }
  
- /**
-@@ -2628,8 +2638,12 @@ run_main_loop_once(void)
-    * an event, or the second ends, or until we have some active linked
-    * connections to trigger events for.  Libevent will wait till one
-    * of these happens, then run all the appropriate callbacks. */
-+  #ifdef __EMSCRIPTEN__
-+  loop_result = event_base_loop(tor_libevent_get_base(), EVLOOP_ONCE | EVLOOP_NONBLOCK);
-+  #else
-   loop_result = event_base_loop(tor_libevent_get_base(),
-                                 called_loop_once ? EVLOOP_ONCE : 0);
-+  #endif
- 
-   /* Oh, the loop failed.  That might be an error that we need to
-    * catch, but more likely, it's just an interrupted poll() call or something,
-@@ -2672,6 +2686,17 @@ run_main_loop_once(void)
+ #ifndef _WIN32
+@@ -3052,6 +3062,17 @@ run_main_loop_once(void)
    return 1;
  }
  
@@ -68,5 +72,5 @@ index c340e4128..625766caa 100644
   * and return its final return value.
   *
 -- 
-2.11.0
+2.17.1
 

@@ -1,7 +1,7 @@
-From 99324287bfbd35203599faab40e65f11cc71717b Mon Sep 17 00:00:00 2001
+From a5b981d6c1ced95f34248ef903f6c2f6e77cddb9 Mon Sep 17 00:00:00 2001
 From: Alex Catarineu <a.catarineu@gmail.com>
 Date: Sun, 10 Sep 2017 23:11:04 +0200
-Subject: [PATCH 1/2] Replace pthread_sigmask by sigprocmask
+Subject: [PATCH] Replace pthread_sigmask by sigprocmask
 
 ---
  src/common/compat_pthreads.c | 2 +-
@@ -21,5 +21,5 @@ index 002274c46..7cb6281d2 100644
    func = data->func;
    arg = data->data;
 -- 
-2.11.0
+2.17.1
 
